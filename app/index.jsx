@@ -8,7 +8,6 @@ const Tab = createBottomTabNavigator();
 import LoginScreen from "./login/index";
 import HomeScreen from "./(tabs)/home";
 import BiosScreen from "./(tabs)/bios";
-import TestBios from "./(tabs)/bios test";
 import ScheduleScreen from "./(tabs)/schedule";
 import ProfileScreen from "./(tabs)/profile";
 import NavLayout from "./(tabs)/_layout";

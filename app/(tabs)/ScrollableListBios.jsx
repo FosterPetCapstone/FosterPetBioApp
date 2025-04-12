@@ -12,8 +12,10 @@ const ScrollableListBios = ({ title, data }) => {
     const [aiGeneratedBio, setAiGeneratedBio] = useState("");
     const [emailSent, setEmailSent] = useState(false); // State for checkbox
 
+    const API_BASE_URL = "https://aaupetrescue-hta0efhnh2gtgrcv.eastus2-01.azurewebsites.net";
+
     useEffect(() => {
-        fetch("http://localhost:8080/api/profiles")
+        fetch('${API_BASE_URL}/api/profiles')
             .then((response) => response.json())
             .then((data) => {
               console.log("Fetched profiles:", data);
@@ -27,7 +29,7 @@ const ScrollableListBios = ({ title, data }) => {
       if (!confirmDelete) return;
     
       try {
-        await fetch(`http://localhost:8080/api/fosters/${id}`, {
+        await fetch(`${API_BASE_URL}/api/fosters/${id}`, {
           method: 'DELETE',
         });
     

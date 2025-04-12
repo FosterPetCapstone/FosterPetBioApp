@@ -1,152 +1,102 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, TouchableOpacity, TextInput, Button, StyleSheet, CheckBox, ScrollView } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, CheckBox, ScrollView } from "react-native";
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-
-
 const ScrollableListBios = ({ title, data }) => {
-    const [profiles, setProfiles] = useState([]);
-    const [selectedProfile, setSelectedProfile] = useState(null);
-    const [filteredProfiles, setFilteredProfiles] = useState([]);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [aiGeneratedBio, setAiGeneratedBio] = useState("");
-    const [emailSent, setEmailSent] = useState(false); // State for checkbox
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredProfiles, setFilteredProfiles] = useState(data || []);
 
-    const API_BASE_URL = "https://aaupetrescue-hta0efhnh2gtgrcv.eastus2-01.azurewebsites.net";
+  useEffect(() => {
+    setFilteredProfiles(data || []);
+  }, [data]);
 
-    useEffect(() => {
-        fetch('${API_BASE_URL}/api/profiles')
-            .then((response) => response.json())
-            .then((data) => {
-              console.log("Fetched profiles:", data);
-               setProfiles(data);
-            })
-            .catch((error) => console.error("Error fetching profiles:", error));
-    }, []);
-
-    const handleDeleteProfile = async (id) => {
-      const confirmDelete = window.confirm("Are you sure you want to delete this profile?");
-      if (!confirmDelete) return;
-    
-      try {
-        await fetch(`${API_BASE_URL}/api/fosters/${id}`, {
-          method: 'DELETE',
-        });
-    
-        // Remove profile from local state
-        const updatedProfiles = profiles.filter(profile => profile.id !== id);
-        setProfiles(updatedProfiles);
-        setFilteredProfiles(updatedProfiles);
-        setSelectedProfile(null); // Go back to the list view after deletion
-      } catch (error) {
-        console.error("Failed to delete profile:", error);
-        alert("Failed to delete profile. Please try again.");
-      }
-    };
-
-    const handleSearch = (query) => {
-      setSearchQuery(query);
-      if (query.trim() === "") {
-          setFilteredProfiles(profiles);
-      } else {
-          const filtered = profiles.filter(profile =>
-              profile.id.toString().includes(query) ||
-              profile.name.toLowerCase().includes(query.toLowerCase()) ||
-              profile.email.toLowerCase().includes(query.toLowerCase()) ||
-              profile.pet_name.toLowerCase().includes(query.toLowerCase())
-          );
-          setFilteredProfiles(filtered);
-      }
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.trim() === "") {
+      setFilteredProfiles(data);
+    } else {
+      const filtered = data.filter(profile =>
+        profile.id.toString().includes(query) ||
+        profile.name?.toLowerCase().includes(query.toLowerCase()) ||
+        profile.email?.toLowerCase().includes(query.toLowerCase()) ||
+        profile.pet_name?.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredProfiles(filtered);
+    }
   };
 
-    const handleSelectProfile = (profile) => {
-        setSelectedProfile(profile);
-        setAiGeneratedBio(""); // Reset bio when selecting a new profile
-    };
-
-    const handleBackToList = () => {
-      setSelectedProfile(null); // Go back to the list view
+  const handleSelectProfile = (profile) => {
+    setSelectedProfile(profile);
   };
 
-    return (
+  const handleBackToList = () => {
+    setSelectedProfile(null);
+  };
+
+  return (
+    <View style={styles.listContainerBios}>
+      <Text style={styles.header}>{title}</Text>
+
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Search profiles..."
+        value={searchQuery}
+        onChangeText={handleSearch}
+      />
+
+      {!selectedProfile && (
+        <FlatList
+          data={filteredProfiles}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => handleSelectProfile(item)} style={{ padding: 10, borderBottomWidth: 1 }}>
+              <View style={styles.item}>
+                <Text style={styles.title}>{item.name}</Text>
+                <Text style={styles.description}>Foster ID: {item.id}</Text>
+                <Text style={styles.description}>Email: {item.email}</Text>
+                <Text style={styles.description}>Phone: {item.phone_number}</Text>
+                <Text style={styles.description}>Pet Name: {item.pet_name}</Text>
+                <Text style={styles.description}>Preferred Contact Time: {item.preferred_contact_time}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+      )}
+
+      {selectedProfile && (
         <View style={styles.listContainerBios}>
-          <Text style={styles.header}>{title}</Text>
+          <ScrollView contentContainerStyle={styles.scrollViewContent}>
+            <View style={styles.selectedProfileContainer}>
+              <TouchableOpacity onPress={handleBackToList} style={styles.backButton}>
+                <Icon name="arrow-left" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
 
-           {/* Search Bar */}
-           <TextInput
-                style={styles.searchBar}
-                placeholder="Search profiles..."
-                value={searchQuery}
-                onChangeText={handleSearch}
-            />
+            <Text style={styles.selectedProfileTitle}>{selectedProfile.name}</Text>
+            <Text style={styles.selectedProfileDescription}>Foster ID: {selectedProfile.id}</Text>
+            <Text style={styles.selectedProfileDescription}>Email: {selectedProfile.email}</Text>
+            <Text style={styles.selectedProfileDescription}>Phone: {selectedProfile.phone_number}</Text>
+            <Text style={styles.selectedProfileDescription}>Pet Name: {selectedProfile.pet_name}</Text>
+            <Text style={styles.selectedProfileDescription}>Preferred Contact Time: {selectedProfile.preferred_contact_time}</Text>
 
-          
-            <FlatList
-                data={searchQuery ? filteredProfiles : profiles} // Show full list when no search is active
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => handleSelectProfile(item)} style={{ padding: 10, borderBottomWidth: 1 }}>
-                        <View style={styles.item}>
-                          <Text style={styles.title}>{item.name}</Text>
-                          <Text style={styles.description}>Foster ID: {item.id}</Text>
-                          <Text style={styles.description}>Email: {item.email}</Text>
-                          <Text style={styles.description}>Phone: {item.phone_number}</Text>
-                          <Text style={styles.description}>Pet Name: {item.pet_name}</Text>
-                          <Text style={styles.description}>Preferred Contact Time: {item.preferred_contact_time}</Text>
-                        </View>
-                    </TouchableOpacity>
-                )}
-            />
+            <View style={styles.checkboxContainer}>
+              <CheckBox
+                value={selectedProfile?.email_sent === true}
+                disabled={true}
+              />
+              <Text style={styles.checkboxLabel}>Email Sent to Photography Team</Text>
+            </View>
 
-            {selectedProfile && (
-              
-                <View style={styles.listContainerBios}>
-                  <ScrollView contentContainerStyle={styles.scrollViewContent}>
-                  <View style={styles.selectedProfileContainer}>
-                    <TouchableOpacity onPress={handleBackToList} style={styles.backButton}>
-                      <Icon name="arrow-left" size={20} color="#fff" /> 
-                    </TouchableOpacity>
-                  </View>
-
-                    <Text style={styles.selectedProfileTitle}>{selectedProfile.name}</Text>
-                    <Text style={styles.selectedProfileDescription}>Foster ID: {selectedProfile.id}</Text>
-                    <Text style={styles.selectedProfileDescription}>Email: {selectedProfile.email}</Text>
-                    <Text style={styles.selectedProfileDescription}>Phone: {selectedProfile.phone_number}</Text>
-                    <Text style={styles.selectedProfileDescription}>Pet Name: {selectedProfile.pet_name}</Text>
-                    <Text style={styles.selectedProfileDescription}>Preferred Contact Time: {selectedProfile.preferred_contact_time}</Text>
-
-                    {/* Email Sent to Photography Team Checkbox */}
-                    <View style={styles.checkboxContainer}>
-                        <CheckBox
-                            value={selectedProfile?.email_sent === true} // Controlled by database value
-                            disabled={true} // Read-only checkbox
-                        />
-                        <Text style={styles.checkboxLabel}>Email Sent to Photography Team</Text>
-                    </View>
-
-                    {/* AI-Generated Bio Section */}
-                    <Text style={styles.bioTitle}>AI-Generated Bio:</Text>
-                    <View style={styles.bioBox}>
-                      <Text style={styles.transcription}>{selectedProfile.transcription}</Text>
-                    </View>
-
-                    {/* Delete Profile Button */}
-                    <View style={{ marginTop: 20, alignItems: 'center' }}>
-                      <TouchableOpacity
-                        onPress={() => handleDeleteProfile(selectedProfile.id)}
-                        style={styles.deleteButton}
-                    >
-                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Delete Profile</Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    </ScrollView>
-                    
-                </View>
-            )}
-            
+            <Text style={styles.bioTitle}>AI-Generated Bio:</Text>
+            <View style={styles.bioBox}>
+              <Text style={styles.transcription}>{selectedProfile.transcription}</Text>
+            </View>
+          </ScrollView>
         </View>
-    );
+      )}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -163,7 +113,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     padding: 5,
-    marginTop: 5, 
+    marginTop: 5,
     width: '50%',
     height: '60%',
     alignSelf: "center"
@@ -188,7 +138,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
-
   },
   description: {
     fontSize: 14,
@@ -254,7 +203,7 @@ const styles = StyleSheet.create({
   },
   selectedProfileContainer: {
     padding: 10,
-    position: 'relative', // Ensure correct positioning for the back button
+    position: 'relative',
   },
   title: {
     fontSize: 18,

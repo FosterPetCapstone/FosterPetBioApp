@@ -14,7 +14,7 @@ const BiosPage = () => {
   const slideAnim = useRef(new Animated.Value(-250)).current; // For sidebar animation
   const [showModal, setShowModal] = useState(false);
 
-  const API_URL = "http://localhost:8080/api/profiles";   // Backend API
+  const API_URL = "https://aaupetrescue-hta0efhnh2gtgrcv.eastus2-01.azurewebsites.net/api/profiles";   // Backend API
 
 
 

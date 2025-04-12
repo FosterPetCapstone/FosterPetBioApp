@@ -16,26 +16,26 @@ jobs:
     name: Build and Deploy Job
     steps:
       - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          submodules: true
-          lfs: false
+          node-version: 18
 
       - name: Install dependencies
         run: npm install
 
-      - name: Build Expo Web App
+      - name: Build Expo web app
         run: npm run build
 
-      - name: Build And Deploy
-        id: builddeploy
+      - name: Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LIVELY_OCEAN_0307BD00F }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/" # Root of your project
-          api_location: "" # No API, so leave it blank
-          output_location: ".expo/web-build" # Where Expo builds the web app
+          app_location: "/" # location of package.json
+          output_location: "dist" # <- this matches the expo export output
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -43,7 +43,6 @@ jobs:
     name: Close Pull Request Job
     steps:
       - name: Close Pull Request
-        id: closepullrequest
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LIVELY_OCEAN_0307BD00F }}
